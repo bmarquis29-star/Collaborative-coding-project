@@ -4,3 +4,5 @@ Team:
   Brennan: response lead, bmarquis29-star
   Christian: integration lead, ccebreros27-svg
   Blake: detection lead, bhanss29-ops
+
+Note: updated docs by response lead (Brennan).
