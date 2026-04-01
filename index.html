@@ -6,17 +6,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
-  <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+
+  <!-- p5 first, then ml5 AFTER -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body class="state-neutral">
+
   <div id="ui-overlay">
     <div id="state-badge">
       <span id="state-label">NEUTRAL</span>
     </div>
     <div id="state-description"></div>
-    <div id="uncomfortable-prompt" class="hidden">
-      Are you still there? Do you want to continue?
+  </div>
+
+  <div id="disengaged-overlay" class="hidden">
+    <div id="disengaged-prompt">
+      <p class="prompt-question">Are you still there?</p>
+      <p class="prompt-sub">Do you want to continue?</p>
+      <div class="prompt-buttons">
+        <button id="btn-yes" onclick="handleYes()">Yes, I'm here</button>
+        <button id="btn-exit" onclick="handleExit()">Exit</button>
+      </div>
     </div>
   </div>
 
