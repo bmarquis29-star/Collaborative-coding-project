@@ -1,1 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sensor Layer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+</head>
+<body class="state-neutral">
+  <div id="ui-overlay">
+    <div id="state-badge">
+      <span id="state-label">NEUTRAL</span>
+    </div>
+    <div id="state-description"></div>
+    <div id="uncomfortable-prompt" class="hidden">
+      Are you still there? Do you want to continue?
+    </div>
+  </div>
 
+  <div id="canvas-container"></div>
+
+  <div id="debug-panel">
+    <div class="debug-row"><span class="debug-key">mouth gap</span><span id="dbg-mouth">—</span></div>
+    <div class="debug-row"><span class="debug-key">gaze x offset</span><span id="dbg-gaze-x">—</span></div>
+    <div class="debug-row"><span class="debug-key">head movement</span><span id="dbg-movement">—</span></div>
+    <div class="debug-row"><span class="debug-key">state frames</span><span id="dbg-hold">—</span></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="detection.js"></script>
+  <script src="stateEngine.js"></script>
+  <script src="response.js"></script>
+  <script src="sketch.js"></script>
+</body>
+</html>
