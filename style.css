@@ -5,7 +5,7 @@
   --text: #e8e4dc;
   --text-dim: #555;
   --accent-joy: #f5c842;
-  --accent-uncomfortable: #e04a2f;
+  --accent-disengaged: #e04a2f;
   --font-mono: 'Space Mono', monospace;
   --font-display: 'DM Serif Display', serif;
 }
@@ -20,22 +20,13 @@ html, body {
 }
 
 /* ── Atmosphere states ── */
-body.state-joy        { background: #091209; }
-body.state-uncomfortable { background: #150808; }
-body.state-neutral    { background: #0e0e0e; }
+body.state-neutral      { background: #0e0e0e; animation: none; }
+body.state-joy          { animation: joyGlow 2.5s ease-in-out infinite; }
+body.state-disengaged   { animation: none; background: #0e0e0e; }
 
-/* joy glow pulse */
-body.state-joy { animation: joyPulse 3s ease-in-out infinite; }
-@keyframes joyPulse {
-  0%,100% { background: #091209; }
-  50%     { background: #0f1e0c; }
-}
-
-/* uncomfortable subtle flash */
-body.state-uncomfortable { animation: uncomfortFlash 0.6s ease-in-out infinite alternate; }
-@keyframes uncomfortFlash {
-  from { background: #150808; }
-  to   { background: #1c0c08; }
+@keyframes joyGlow {
+  0%, 100% { background: #1a1400; }
+  50%       { background: #2a2000; }
 }
 
 /* ── Canvas ── */
@@ -44,7 +35,24 @@ body.state-uncomfortable { animation: uncomfortFlash 0.6s ease-in-out infinite a
   display: flex; align-items: center; justify-content: center;
   z-index: 1;
 }
-#canvas-container canvas { border-radius: 4px; }
+#canvas-container canvas {
+  border-radius: 4px;
+  transition: box-shadow 1s ease, filter 1s ease;
+}
+
+/* joy — yellow glow on the canvas */
+body.state-joy #canvas-container canvas {
+  box-shadow: 0 0 60px 20px rgba(245, 200, 66, 0.35),
+              0 0 120px 60px rgba(245, 200, 66, 0.12);
+  filter: brightness(1.08) saturate(1.1);
+}
+
+/* disengaged — red glow */
+body.state-disengaged #canvas-container canvas {
+  box-shadow: 0 0 60px 20px rgba(224, 74, 47, 0.3),
+              0 0 120px 60px rgba(224, 74, 47, 0.1);
+  filter: brightness(0.9) saturate(0.8);
+}
 
 /* ── UI Overlay ── */
 #ui-overlay {
@@ -57,7 +65,6 @@ body.state-uncomfortable { animation: uncomfortFlash 0.6s ease-in-out infinite a
   padding: 2rem; gap: 0.75rem;
 }
 
-/* badge */
 #state-badge {
   display: inline-flex; align-items: center; gap: 0.6rem;
   padding: 0.35rem 1rem;
@@ -81,13 +88,13 @@ body.state-joy #state-badge::before {
   background: var(--accent-joy);
   box-shadow: 0 0 10px var(--accent-joy);
 }
-body.state-uncomfortable #state-badge {
-  border-color: var(--accent-uncomfortable);
+body.state-disengaged #state-badge {
+  border-color: var(--accent-disengaged);
   background: rgba(224,74,47,0.07);
 }
-body.state-uncomfortable #state-badge::before {
-  background: var(--accent-uncomfortable);
-  box-shadow: 0 0 10px var(--accent-uncomfortable);
+body.state-disengaged #state-badge::before {
+  background: var(--accent-disengaged);
+  box-shadow: 0 0 10px var(--accent-disengaged);
 }
 
 #state-label {
@@ -97,7 +104,6 @@ body.state-uncomfortable #state-badge::before {
   color: var(--text);
 }
 
-/* description */
 #state-description {
   font-family: var(--font-display);
   font-style: italic;
@@ -107,50 +113,115 @@ body.state-uncomfortable #state-badge::before {
   transition: color 0.8s;
   min-height: 1.5rem;
 }
-body.state-joy          #state-description { color: rgba(245,200,66,0.6); }
-body.state-uncomfortable #state-description { color: rgba(224,74,47,0.6); }
+body.state-joy          #state-description { color: rgba(245,200,66,0.7); }
+body.state-disengaged   #state-description { color: rgba(224,74,47,0.6); }
 
-/* uncomfortable prompt */
-#uncomfortable-prompt {
-  margin-top: auto;
-  align-self: center;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.5rem;
-  color: var(--accent-uncomfortable);
-  text-align: center;
-  opacity: 0;
-  animation: promptFade 1.2s ease forwards;
+/* ── Disengaged throb overlay ── */
+#disengaged-overlay {
+  position: fixed; inset: 0;
+  z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0);
   pointer-events: none;
+  transition: background 0.4s;
 }
-#uncomfortable-prompt.hidden { display: none; }
-@keyframes promptFade {
-  from { opacity: 0; transform: translateY(8px); }
+#disengaged-overlay.active {
+  pointer-events: all;
+  animation: throb 1.1s ease-in-out infinite;
+}
+#disengaged-overlay.hidden {
+  display: none;
+}
+
+@keyframes throb {
+  0%, 100% { background: rgba(140, 30, 10, 0.0); }
+  50%       { background: rgba(140, 30, 10, 0.35); }
+}
+
+#disengaged-prompt {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 1.2rem;
+  padding: 2.5rem 3rem;
+  background: rgba(10, 6, 6, 0.88);
+  border: 1px solid rgba(224,74,47,0.5);
+  border-radius: 4px;
+  backdrop-filter: blur(10px);
+  animation: promptRise 0.5s ease forwards;
+}
+
+@keyframes promptRise {
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* joy particles canvas overlay */
-#joy-particles {
+.prompt-question {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.8rem;
+  color: var(--text);
+  text-align: center;
+}
+.prompt-sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.prompt-buttons {
+  display: flex; gap: 1rem; margin-top: 0.5rem;
+}
+.prompt-buttons button {
+  padding: 0.55rem 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  border-radius: 2px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#btn-yes {
+  background: transparent;
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+#btn-yes:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--text);
+}
+#btn-exit {
+  background: rgba(224,74,47,0.15);
+  border-color: var(--accent-disengaged);
+  color: var(--accent-disengaged);
+}
+#btn-exit:hover {
+  background: rgba(224,74,47,0.3);
+}
+
+/* ── Joy particle canvas ── */
+#joy-canvas {
   position: fixed; inset: 0;
   pointer-events: none;
   z-index: 9;
   opacity: 0;
   transition: opacity 0.8s;
 }
-body.state-joy #joy-particles { opacity: 1; }
+body.state-joy #joy-canvas { opacity: 1; }
 
 /* ── Debug panel ── */
 #debug-panel {
   position: fixed; bottom: 1.5rem; right: 1.5rem;
-  z-index: 20;
-  background: rgba(14,14,14,0.8);
+  z-index: 30;
+  background: rgba(14,14,14,0.85);
   border: 1px solid #222;
   border-radius: 2px;
   padding: 0.75rem 1rem;
   display: flex; flex-direction: column; gap: 0.3rem;
 }
 .debug-row {
-  display: flex; gap: 1rem; justify-content: space-between;
+  display: flex; gap: 1.5rem; justify-content: space-between;
   font-size: 0.65rem; color: var(--text-dim);
 }
 .debug-key { color: #444; }
