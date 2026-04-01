@@ -1,1 +1,156 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --bg: #0e0e0e;
+  --text: #e8e4dc;
+  --text-dim: #555;
+  --accent-joy: #f5c842;
+  --accent-uncomfortable: #e04a2f;
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'DM Serif Display', serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  transition: background 1.2s ease;
+}
+
+/* ── Atmosphere states ── */
+body.state-joy        { background: #091209; }
+body.state-uncomfortable { background: #150808; }
+body.state-neutral    { background: #0e0e0e; }
+
+/* joy glow pulse */
+body.state-joy { animation: joyPulse 3s ease-in-out infinite; }
+@keyframes joyPulse {
+  0%,100% { background: #091209; }
+  50%     { background: #0f1e0c; }
+}
+
+/* uncomfortable subtle flash */
+body.state-uncomfortable { animation: uncomfortFlash 0.6s ease-in-out infinite alternate; }
+@keyframes uncomfortFlash {
+  from { background: #150808; }
+  to   { background: #1c0c08; }
+}
+
+/* ── Canvas ── */
+#canvas-container {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1;
+}
+#canvas-container canvas { border-radius: 4px; }
+
+/* ── UI Overlay ── */
+#ui-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: flex-start;
+  padding: 2rem; gap: 0.75rem;
+}
+
+/* badge */
+#state-badge {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid var(--text-dim);
+  background: rgba(14,14,14,0.75);
+  backdrop-filter: blur(6px);
+  border-radius: 2px;
+  transition: border-color 0.6s, background 0.6s;
+}
+#state-badge::before {
+  content: '';
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-dim);
+  transition: background 0.4s, box-shadow 0.4s;
+}
+body.state-joy #state-badge {
+  border-color: var(--accent-joy);
+  background: rgba(245,200,66,0.07);
+}
+body.state-joy #state-badge::before {
+  background: var(--accent-joy);
+  box-shadow: 0 0 10px var(--accent-joy);
+}
+body.state-uncomfortable #state-badge {
+  border-color: var(--accent-uncomfortable);
+  background: rgba(224,74,47,0.07);
+}
+body.state-uncomfortable #state-badge::before {
+  background: var(--accent-uncomfortable);
+  box-shadow: 0 0 10px var(--accent-uncomfortable);
+}
+
+#state-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--text);
+}
+
+/* description */
+#state-description {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  padding-left: 0.2rem;
+  transition: color 0.8s;
+  min-height: 1.5rem;
+}
+body.state-joy          #state-description { color: rgba(245,200,66,0.6); }
+body.state-uncomfortable #state-description { color: rgba(224,74,47,0.6); }
+
+/* uncomfortable prompt */
+#uncomfortable-prompt {
+  margin-top: auto;
+  align-self: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--accent-uncomfortable);
+  text-align: center;
+  opacity: 0;
+  animation: promptFade 1.2s ease forwards;
+  pointer-events: none;
+}
+#uncomfortable-prompt.hidden { display: none; }
+@keyframes promptFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* joy particles canvas overlay */
+#joy-particles {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+body.state-joy #joy-particles { opacity: 1; }
+
+/* ── Debug panel ── */
+#debug-panel {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  z-index: 20;
+  background: rgba(14,14,14,0.8);
+  border: 1px solid #222;
+  border-radius: 2px;
+  padding: 0.75rem 1rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.debug-row {
+  display: flex; gap: 1rem; justify-content: space-between;
+  font-size: 0.65rem; color: var(--text-dim);
+}
+.debug-key { color: #444; }
