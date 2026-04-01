@@ -225,3 +225,27 @@ body.state-joy #joy-canvas { opacity: 1; }
   font-size: 0.65rem; color: var(--text-dim);
 }
 .debug-key { color: #444; }
+
+body.state-emotionless {
+  background: #0e0e0e;
+  animation: none;
+}
+
+body.state-emotionless #canvas-container canvas {
+  box-shadow: 0 0 40px 10px rgba(180,180,180,0.08);
+  filter: brightness(0.95) saturate(0.6) grayscale(0.3);
+}
+
+body.state-emotionless #state-badge {
+  border-color: #444;
+  background: rgba(14,14,14,0.8);
+}
+
+body.state-emotionless #state-badge::before {
+  background: #666;
+  box-shadow: 0 0 6px #666;
+}
+
+body.state-emotionless #state-description {
+  color: #444;
+}
