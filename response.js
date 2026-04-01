@@ -1,15 +1,15 @@
-// ─── response.js ─────────────────────────────────────────
-
 const LABELS = {
-  neutral:    'NEUTRAL',
-  joy:        'JOY',
-  disengaged: 'DISENGAGED',
+  neutral:     'NEUTRAL',
+  emotionless: 'EMOTIONLESS',
+  joy:         'JOY',
+  disengaged:  'DISENGAGED',
 };
 
 const DESCRIPTIONS = {
-  neutral:    '',
-  joy:        'feeling seen.',
-  disengaged: 'something feels off…',
+  neutral:     '',
+  emotionless: 'present. unreadable.',
+  joy:         'feeling seen.',
+  disengaged:  'something feels off…',
 };
 
 const bodyEl        = document.body;
@@ -17,12 +17,11 @@ const stateLabelEl  = document.getElementById('state-label');
 const stateDescEl   = document.getElementById('state-description');
 const disengOverlay = document.getElementById('disengaged-overlay');
 
-// ── Button handlers ────────────────────────────────────────
 function handleYes() {
   forceNeutral();
   disengOverlay.classList.add('hidden');
   disengOverlay.classList.remove('active');
-  bodyEl.classList.remove('state-neutral', 'state-joy', 'state-disengaged');
+  bodyEl.classList.remove('state-neutral', 'state-joy', 'state-disengaged', 'state-emotionless');
   bodyEl.classList.add('state-neutral');
   stateLabelEl.textContent = LABELS.neutral;
   stateDescEl.textContent  = DESCRIPTIONS.neutral;
@@ -41,8 +40,7 @@ function handleExit() {
     </div>`;
 }
 
-// ── Joy particles — drawn on a separate <canvas> overlay ──
-// Using plain Canvas2D so we don't need the p5 instance
+// ── Joy particles ──────────────────────────────────────────
 let _particleCanvas = null;
 let _ctx = null;
 let _particles = [];
@@ -50,7 +48,6 @@ let _particles = [];
 function ensureParticleCanvas() {
   if (_particleCanvas) return;
   _particleCanvas = document.createElement('canvas');
-  _particleCanvas.id = 'joy-particle-canvas';
   _particleCanvas.style.cssText = `
     position:fixed; inset:0; width:100%; height:100%;
     pointer-events:none; z-index:9; opacity:0;
@@ -98,14 +95,13 @@ function tickParticles() {
   }
 }
 
-// ── Main response — called every frame ────────────────────
 function applyResponse(stateInfo, dimensions) {
   const { state, changed, disengDuration } = stateInfo;
 
   ensureParticleCanvas();
 
   if (changed) {
-    bodyEl.classList.remove('state-neutral', 'state-joy', 'state-disengaged');
+    bodyEl.classList.remove('state-neutral', 'state-joy', 'state-disengaged', 'state-emotionless');
     bodyEl.classList.add(`state-${state}`);
     stateLabelEl.textContent = LABELS[state];
     stateDescEl.textContent  = DESCRIPTIONS[state];
@@ -122,13 +118,9 @@ function applyResponse(stateInfo, dimensions) {
     }
   }
 
-  // Joy particles
-  if (state === 'joy') {
-    if (Math.random() < 0.45) spawnJoyParticle();
-  }
+  if (state === 'joy' && Math.random() < 0.45) spawnJoyParticle();
   tickParticles();
 
-  // Disengaged prompt after delay
   if (state === 'disengaged') {
     const showPrompt = disengDuration >= CONFIG.disengaged.promptDelayFrames;
     if (showPrompt && disengOverlay.classList.contains('hidden')) {
