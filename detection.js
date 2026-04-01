@@ -1,80 +1,76 @@
-// ─── detection.js ────────────────────────────────────────
-// Receives raw FaceMesh landmarks → returns named signal values.
-// NO state logic here. Only math.
+// face-api 68-point landmark map:
+// Mouth: 51 (top lip) 57 (bottom lip)
+// Nose tip: 30,  Chin: 8
+// Left eye corners: 36 (outer) 39 (inner)
+// Right eye corners: 42 (inner) 45 (outer)
+// Left iris: no iris points in 68-model — use eye center instead
 
-// Euclidean distance between two landmark points
 function dist2D(a, b) {
+  if (!a || !b) return 0;
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-// Returns normalized mouth openness (0 = closed, ~0.1 = wide open)
-// Normalized by face height (nose tip to chin) so it's scale-independent.
 function getMouthOpenness(landmarks) {
-  const upperLip = landmarks[13];
-  const lowerLip = landmarks[14];
-  const noseTip  = landmarks[1];
-  const chin     = landmarks[152];
-
-  const mouthGap  = dist2D(upperLip, lowerLip);
+  const topLip    = landmarks[51];
+  const bottomLip = landmarks[57];
+  const noseTip   = landmarks[27];
+  const chin      = landmarks[8];
+  if (!topLip || !bottomLip || !noseTip || !chin) return 0;
   const faceHeight = dist2D(noseTip, chin);
-
   if (faceHeight === 0) return 0;
-  return mouthGap / faceHeight;
+  return dist2D(topLip, bottomLip) / faceHeight;
 }
 
-// Returns normalized iris X offset from eye center (left eye).
-// 0 = looking straight, positive = looking right, negative = looking left.
-// Uses: iris center (468), inner corner (133), outer corner (33)
+// For gaze we use the center of each eye vs pupil approximation
+// Left eye: landmarks 36–41, right eye: 42–47
+// We compare left eye center x to right eye center x relative to face width
 function getGazeXOffset(landmarks) {
-  // ml5 v1 FaceMesh includes iris landmarks at indices 468–477
-  const iris        = landmarks[468]; // left iris center
-  const innerCorner = landmarks[133];
-  const outerCorner = landmarks[33];
+  const leftEyeOuter  = landmarks[36];
+  const leftEyeInner  = landmarks[39];
+  const rightEyeInner = landmarks[42];
+  const rightEyeOuter = landmarks[45];
+  if (!leftEyeOuter || !rightEyeOuter) return 0;
 
-  if (!iris || !innerCorner || !outerCorner) return 0;
+  const faceWidth = dist2D(leftEyeOuter, rightEyeOuter);
+  if (faceWidth === 0) return 0;
 
-  const eyeWidth = dist2D(innerCorner, outerCorner);
-  if (eyeWidth === 0) return 0;
+  // eye midpoint x vs face center x
+  const leftEyeCenterX  = (leftEyeOuter.x  + leftEyeInner.x)  / 2;
+  const rightEyeCenterX = (rightEyeInner.x + rightEyeOuter.x) / 2;
+  const eyeMidX         = (leftEyeCenterX + rightEyeCenterX) / 2;
+  const faceCenterX     = (leftEyeOuter.x + rightEyeOuter.x) / 2;
 
-  const eyeCenterX = (innerCorner.x + outerCorner.x) / 2;
-  return (iris.x - eyeCenterX) / eyeWidth; // normalized, roughly –0.5 to +0.5
+  return Math.abs((eyeMidX - faceCenterX) / faceWidth);
 }
 
-// Returns frame-to-frame movement of the nose tip (landmark 1).
-// High values = head is moving around (restless/uncomfortable).
 let _prevNoseX = null;
 let _prevNoseY = null;
 let _smoothedMovement = 0;
 
 function getHeadMovement(landmarks) {
-  const nose = landmarks[1];
-
+  const nose = landmarks[30];
+  if (!nose) return 0;
   if (_prevNoseX === null) {
-    _prevNoseX = nose.x;
-    _prevNoseY = nose.y;
-    return 0;
+    _prevNoseX = nose.x; _prevNoseY = nose.y; return 0;
   }
-
-  const dx = nose.x - _prevNoseX;
-  const dy = nose.y - _prevNoseY;
+  const dx  = nose.x - _prevNoseX;
+  const dy  = nose.y - _prevNoseY;
   const raw = Math.sqrt(dx * dx + dy * dy);
-
-  // Exponential smoothing to avoid single-frame spikes
-  _smoothedMovement = _smoothedMovement * CONFIG.uncomfortable.movementDecay
-                    + raw * (1 - CONFIG.uncomfortable.movementDecay);
-
+  _smoothedMovement = _smoothedMovement * CONFIG.disengaged.movementDecay
+                    + raw * (1 - CONFIG.disengaged.movementDecay);
   _prevNoseX = nose.x;
   _prevNoseY = nose.y;
-
   return _smoothedMovement;
 }
 
-// Master function — call this each frame with the landmark array.
-// Returns a plain signals object consumed by stateEngine.js
 function extractSignals(landmarks) {
-  return {
-    mouthOpenness: getMouthOpenness(landmarks),
-    gazeXOffset:   Math.abs(getGazeXOffset(landmarks)), // absolute — either direction counts
-    headMovement:  getHeadMovement(landmarks),
-  };
+  const mouth = getMouthOpenness(landmarks);
+  const gaze  = getGazeXOffset(landmarks);
+  const move  = getHeadMovement(landmarks);
+
+  if (frameCount % 60 === 0) {
+    console.log(`mouth: ${mouth.toFixed(4)} | gaze: ${gaze.toFixed(4)} | move: ${move.toFixed(3)}`);
+  }
+
+  return { mouthOpenness: mouth, gazeXOffset: gaze, headMovement: move };
 }
