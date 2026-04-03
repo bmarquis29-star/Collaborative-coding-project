@@ -9,3 +9,4 @@ Note: updated docs by response lead (Brennan).
 implemented: unfocused and joy
 default emotion not implemented, so the tool reads blank stares are read as interchangably joy and unfocused
 mechanics aren't sensitive enough, so you either have to force a smile to see "joy", but looking away reads as unfocused, which is good for now
+prototype serves witness or observatory pole, tightening is required and tweaking of weak areas
