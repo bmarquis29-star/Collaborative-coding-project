@@ -2,19 +2,19 @@ const CONFIG = {
 
   // ── Joy detection ──────────────────────────────────────
   joy: {
-    mouthOpenThreshold:   0.18,  // raised significantly — requires a real smile/open mouth
-    mouthCloseHysteresis: 0.12,  // must drop below this to exit joy
+    mouthOpenThreshold:   0.08,  // open mouth or smile triggers it
+    mouthCloseHysteresis: 0.05,
     holdFrames:  8,
     releaseFrames: 20,
   },
 
   // ── Disengaged detection ───────────────────────────────
   disengaged: {
-    gazeOffsetThreshold:  0.08,
-    gazeHysteresis:       0.05,
+    gazeOffsetThreshold:  0.04,
+    gazeHysteresis:       0.02,
     movementThreshold:    4.0,
     movementDecay:        0.85,
-    holdFrames:   18,
+    holdFrames:   6,
     releaseFrames: 30,
     promptDelayFrames: 90,
   },
