@@ -55,6 +55,10 @@ function draw() {
   }
 
   if (detections.length === 0) {
+    // still run state engine so disengaged can trigger
+    const stateInfo = updateState({ noFace: true, mouthOpenness: 0, gazeXOffset: 0, headMovement: 0 });
+    applyResponse(stateInfo, { width, height });
+
     fill(80);
     noStroke();
     textAlign(CENTER, CENTER);
@@ -98,3 +102,13 @@ function draw() {
     if (pt) ellipse(pt.x, pt.y, 4);
   }
 }
+// pause camera when tab is hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    capture.elt.pause();
+    noLoop();
+  } else {
+    capture.elt.play();
+    loop();
+  }
+});
