@@ -225,7 +225,6 @@ body.state-joy #joy-canvas { opacity: 1; }
   font-size: 0.65rem; color: var(--text-dim);
 }
 .debug-key { color: #444; }
-
 body.state-emotionless {
   background: #0e0e0e;
   animation: none;
