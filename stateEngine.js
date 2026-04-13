@@ -40,6 +40,27 @@ function updateState(signals) {
     _noFaceCount = 0; // face is back, reset counter
   }
 
+  const calmFace = signals.mouthOpenness < CONFIG.joy.mouthCloseHysteresis
+                && signals.gazeXOffset < CONFIG.disengaged.gazeHysteresis
+                && signals.headMovement < CONFIG.sadness.movementLimit;
+
+  if (calmFace) {
+    _joyHold = 0;
+    _sadnessHold = 0;
+    _sadnessRelease = 0;
+    _anxietyHold = 0;
+    _anxietyRelease = 0;
+    _disengHold = 0;
+    _disengRelease = 0;
+    _currentState = STATES.EMOTIONLESS;
+    return {
+      state:          _currentState,
+      changed:        _currentState !== prev,
+      disengDuration: _disengDuration,
+      debugHold:      0,
+    };
+  }
+
   // ── Joy ───────────────────────────────────────────────
   const mouthOpen   = signals.mouthOpenness > CONFIG.joy.mouthOpenThreshold;
   const mouthClosed = signals.mouthOpenness < CONFIG.joy.mouthCloseHysteresis;

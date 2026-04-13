@@ -2,10 +2,10 @@ const CONFIG = {
 
   // ── Joy detection ──────────────────────────────────────
   joy: {
-    mouthOpenThreshold:   0.08,  // open mouth or smile triggers it
+    mouthOpenThreshold:   0.06,  // open mouth or smile triggers it
     mouthCloseHysteresis: 0.05,
-    holdFrames:  8,
-    releaseFrames: 20,
+    holdFrames:  4,
+    releaseFrames: 12,
   },
 
   // ── Sadness detection ─────────────────────────────────
