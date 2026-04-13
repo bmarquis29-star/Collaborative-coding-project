@@ -5,6 +5,8 @@
   --text: #e8e4dc;
   --text-dim: #555;
   --accent-joy: #f5c842;
+  --accent-sadness: #7fa2d9;
+  --accent-anxiety: #b46cff;
   --accent-disengaged: #e04a2f;
   --font-mono: 'Space Mono', monospace;
   --font-display: 'DM Serif Display', serif;
@@ -22,11 +24,23 @@ html, body {
 /* ── Atmosphere states ── */
 body.state-neutral      { background: #0e0e0e; animation: none; }
 body.state-joy          { animation: joyGlow 2.5s ease-in-out infinite; }
+body.state-sadness      { background: #081019; animation: sadnessGlow 4.5s ease-in-out infinite; }
+body.state-anxiety      { background: #140b1c; animation: anxietyPulse 1.7s ease-in-out infinite; }
 body.state-disengaged   { animation: none; background: #0e0e0e; }
 
 @keyframes joyGlow {
   0%, 100% { background: #1a1400; }
   50%       { background: #2a2000; }
+}
+
+@keyframes sadnessGlow {
+  0%, 100% { background: #071019; }
+  50%      { background: #101c2e; }
+}
+
+@keyframes anxietyPulse {
+  0%, 100% { background: #130b1b; }
+  50%      { background: #22102f; }
 }
 
 /* ── Canvas ── */
@@ -52,6 +66,18 @@ body.state-disengaged #canvas-container canvas {
   box-shadow: 0 0 60px 20px rgba(224, 74, 47, 0.3),
               0 0 120px 60px rgba(224, 74, 47, 0.1);
   filter: brightness(0.9) saturate(0.8);
+}
+
+body.state-sadness #canvas-container canvas {
+  box-shadow: 0 0 60px 20px rgba(127, 162, 217, 0.22),
+              0 0 120px 60px rgba(127, 162, 217, 0.08);
+  filter: brightness(0.92) saturate(0.75);
+}
+
+body.state-anxiety #canvas-container canvas {
+  box-shadow: 0 0 60px 20px rgba(180, 108, 255, 0.24),
+              0 0 120px 60px rgba(180, 108, 255, 0.1);
+  filter: brightness(0.95) saturate(0.9);
 }
 
 /* ── UI Overlay ── */
@@ -96,6 +122,22 @@ body.state-disengaged #state-badge::before {
   background: var(--accent-disengaged);
   box-shadow: 0 0 10px var(--accent-disengaged);
 }
+body.state-sadness #state-badge {
+  border-color: var(--accent-sadness);
+  background: rgba(127,162,217,0.08);
+}
+body.state-sadness #state-badge::before {
+  background: var(--accent-sadness);
+  box-shadow: 0 0 10px var(--accent-sadness);
+}
+body.state-anxiety #state-badge {
+  border-color: var(--accent-anxiety);
+  background: rgba(180,108,255,0.08);
+}
+body.state-anxiety #state-badge::before {
+  background: var(--accent-anxiety);
+  box-shadow: 0 0 10px var(--accent-anxiety);
+}
 
 #state-label {
   font-family: var(--font-mono);
@@ -114,6 +156,8 @@ body.state-disengaged #state-badge::before {
   min-height: 1.5rem;
 }
 body.state-joy          #state-description { color: rgba(245,200,66,0.7); }
+body.state-sadness      #state-description { color: rgba(127,162,217,0.75); }
+body.state-anxiety      #state-description { color: rgba(180,108,255,0.75); }
 body.state-disengaged   #state-description { color: rgba(224,74,47,0.6); }
 
 /* ── Disengaged throb overlay ── */
