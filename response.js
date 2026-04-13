@@ -57,6 +57,7 @@ function handleExit() {
 let _particleCanvas = null;
 let _ctx = null;
 let _particles = [];
+let _sadnessParticles = [];
 
 function ensureParticleCanvas() {
   if (_particleCanvas) return;
@@ -92,9 +93,38 @@ function spawnJoyParticle() {
   });
 }
 
+function spawnSadnessParticle() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  _sadnessParticles.push({
+    x: Math.random() * w,
+    y: Math.random() * h * 0.7,
+    vx: (Math.random() - 0.5) * 0.22,
+    vy: Math.random() * 0.35 + 0.08,
+    size: Math.random() * 18 + 10,
+    alpha: Math.random() * 0.22 + 0.08,
+    color: Math.random() > 0.5 ? '127,162,217' : '170,190,230',
+  });
+}
+
 function tickParticles() {
   if (!_ctx || !_particleCanvas) return;
   _ctx.clearRect(0, 0, _particleCanvas.width, _particleCanvas.height);
+
+  _sadnessParticles = _sadnessParticles.filter(p => p.alpha > 0.01);
+  for (const p of _sadnessParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= 0.0018;
+    p.vx += (Math.random() - 0.5) * 0.015;
+    _ctx.beginPath();
+    _ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+    _ctx.shadowBlur = 24;
+    _ctx.shadowColor = `rgba(${p.color},${Math.max(0.02, p.alpha)})`;
+    _ctx.ellipse(p.x, p.y, p.size * 0.55, p.size, 0, 0, Math.PI * 2);
+    _ctx.fill();
+  }
+
   _particles = _particles.filter(p => p.alpha > 0.02);
   for (const p of _particles) {
     p.x    += p.vx;
@@ -104,6 +134,7 @@ function tickParticles() {
     _ctx.beginPath();
     _ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
     _ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+    _ctx.shadowBlur = 0;
     _ctx.fill();
   }
 }
@@ -123,8 +154,9 @@ function applyResponse(stateInfo, dimensions) {
       disengOverlay.classList.add('hidden');
       disengOverlay.classList.remove('active');
     }
-    if (state !== 'joy') {
+    if (state !== 'joy' && state !== 'sadness') {
       _particles = [];
+      _sadnessParticles = [];
       if (_particleCanvas) _particleCanvas.style.opacity = '0';
     } else {
       if (_particleCanvas) _particleCanvas.style.opacity = '1';
@@ -132,6 +164,7 @@ function applyResponse(stateInfo, dimensions) {
   }
 
   if (state === 'joy' && Math.random() < 0.45) spawnJoyParticle();
+  if (state === 'sadness' && Math.random() < 0.26) spawnSadnessParticle();
   tickParticles();
 
   if (state === 'disengaged') {
