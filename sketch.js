@@ -94,13 +94,6 @@ function draw() {
     console.warn('pipeline error:', err);
   }
 
-  // subtle dots on key landmarks
-  noStroke();
-  fill(255, 255, 255, 50);
-  for (const idx of [51, 57, 27, 8, 36, 39, 42, 45]) {
-    const pt = mirrored[idx];
-    if (pt) ellipse(pt.x, pt.y, 4);
-  }
 }
 // pause camera when tab is hidden, resume when visible
 document.addEventListener('visibilitychange', () => {
