@@ -4,9 +4,12 @@ const STATES = {
   SADNESS:     'sadness',
   ANXIETY:     'anxiety',
   DISENGAGED:  'disengaged',
+  FRUSTRATION: 'frustration',
 };
 
 let _joyHold        = 0;
+let _frustrationHold    = 0;
+let _frustrationRelease = 0;
 let _sadnessHold    = 0;
 let _sadnessRelease = 0;
 let _anxietyHold    = 0;
@@ -50,6 +53,8 @@ function updateState(signals) {
     _sadnessRelease = 0;
     _anxietyHold = 0;
     _anxietyRelease = 0;
+    _frustrationHold = 0;
+    _frustrationRelease = 0;
     _disengHold = 0;
     _disengRelease = 0;
     _currentState = STATES.EMOTIONLESS;
@@ -95,6 +100,21 @@ function updateState(signals) {
     _anxietyHold = Math.max(0, _anxietyHold - 1);
   }
 
+  // ── Frustration ───────────────────────────────────────
+const frustrationMouth = signals.mouthOpenness > CONFIG.frustration.mouthTensionMin
+                      && signals.mouthOpenness < CONFIG.frustration.mouthTensionMax;
+const frustrationMove  = signals.headMovement  > CONFIG.frustration.movementThreshold;
+const frustrationOn    = frustrationMouth && frustrationMove;
+const frustrationOff   = signals.headMovement  < CONFIG.frustration.movementThreshold * 0.5
+                      && signals.mouthOpenness < CONFIG.frustration.mouthTensionMin;
+if (frustrationOn) {
+  _frustrationHold++;
+  _frustrationRelease = 0;
+} else if (frustrationOff) {
+  _frustrationRelease++;
+  _frustrationHold = Math.max(0, _frustrationHold - 1);
+} 
+  
   // ── Disengaged — looking away ─────────────────────────
   const gazeAverted = signals.gazeXOffset  > CONFIG.disengaged.gazeOffsetThreshold;
   const fidgeting   = signals.headMovement > CONFIG.disengaged.movementThreshold;
@@ -111,7 +131,9 @@ function updateState(signals) {
   const sadnessGone  = _sadnessRelease >= CONFIG.sadness.releaseFrames;
   const anxietyReady = _anxietyHold >= CONFIG.anxiety.holdFrames;
   const anxietyGone  = _anxietyRelease >= CONFIG.anxiety.releaseFrames;
-  const disengReady = _disengHold >= CONFIG.disengaged.holdFrames;
+  const disengReady = _disengHold >= CONFIG.disengaged.holdFrames; 
+  const frustrationReady = _frustrationHold    >= CONFIG.frustration.holdFrames;
+  const frustrationGone  = _frustrationRelease >= CONFIG.frustration.releaseFrames;
   const disengGone  = _disengRelease >= CONFIG.disengaged.releaseFrames;
 
   if (disengReady) {
@@ -123,9 +145,13 @@ function updateState(signals) {
     _currentState   = STATES.EMOTIONLESS;
   } else if (anxietyReady) {
     _currentState = STATES.ANXIETY;
-  } else if (_currentState === STATES.ANXIETY && anxietyGone) {
+ } else if (_currentState === STATES.ANXIETY && anxietyGone) {
     _currentState = STATES.EMOTIONLESS;
-  } else if (sadnessReady) {
+} else if (frustrationReady) {
+    _currentState = STATES.FRUSTRATION;
+} else if (_currentState === STATES.FRUSTRATION && frustrationGone) {
+    _currentState = STATES.EMOTIONLESS;
+} else if (sadnessReady) {
     _currentState = STATES.SADNESS;
   } else if (_currentState === STATES.SADNESS && sadnessGone) {
     _currentState = STATES.EMOTIONLESS;
@@ -149,6 +175,8 @@ function forceNeutral() {
   _anxietyHold    = 0;
   _anxietyRelease = 0;
   _disengHold     = 0;
+  _frustrationHold    = 0;
+  _frustrationRelease = 0;
   _disengRelease  = 0;
   _disengDuration = 0;
   _noFaceCount    = 0;
