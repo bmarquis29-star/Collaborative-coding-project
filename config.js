@@ -25,6 +25,15 @@ const CONFIG = {
     releaseFrames: 12,
   },
 
+// ── Frustration detection ──────────────────────────────
+frustration: {
+  mouthTensionMin:   0.033,
+  mouthTensionMax:   0.055,
+  movementThreshold: 1.8,
+  holdFrames:        8,
+  releaseFrames:     14,
+},
+  
   // ── Disengaged detection ───────────────────────────────
   disengaged: {
     gazeOffsetThreshold:  0.04,
