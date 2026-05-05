@@ -1,5 +1,7 @@
 let _previousNoseTip = null;
 let _smoothedHeadMovement = 0;
+let _baselineGazeOffset = null;
+let _baselineSamples = 0;
 
 function dist2D(a, b) {
   if (!a || !b) return 0;
@@ -38,7 +40,7 @@ function extractSignals(landmarks) {
   const mouthOpenness = mouthGap / mouthWidth;
 
   const eyeCenterX = leftEye && rightEye ? (leftEye.x + rightEye.x) / 2 : 0;
-  const gazeXOffset = noseTip ? Math.abs(noseTip.x - eyeCenterX) / faceScale : 0;
+  const rawGazeXOffset = noseTip ? Math.abs(noseTip.x - eyeCenterX) / faceScale : 0;
 
   let headMovement = 0;
   if (noseTip && _previousNoseTip) {
@@ -52,6 +54,21 @@ function extractSignals(landmarks) {
     _previousNoseTip = { x: noseTip.x, y: noseTip.y };
   }
 
+  // Learn a session baseline so "looking at screen" doesn't get flagged as disengaged
+  // when the webcam is physically offset from center.
+  const canUpdateBaseline = _baselineSamples < 120 && headMovement < 2.5;
+  if (canUpdateBaseline) {
+    if (_baselineGazeOffset === null) {
+      _baselineGazeOffset = rawGazeXOffset;
+    } else {
+      _baselineGazeOffset = (_baselineGazeOffset * 0.92) + (rawGazeXOffset * 0.08);
+    }
+    _baselineSamples++;
+  }
+
+  const baseline = _baselineGazeOffset ?? 0;
+  const gazeXOffset = Math.max(0, rawGazeXOffset - baseline);
+
   return {
     noFace: false,
     mouthOpenness,
@@ -64,6 +81,8 @@ function extractSignals(landmarks) {
 function resetDetectionState() {
   _previousNoseTip = null;
   _smoothedHeadMovement = 0;
+  _baselineGazeOffset = null;
+  _baselineSamples = 0;
 }
 
 window.extractSignals = extractSignals;

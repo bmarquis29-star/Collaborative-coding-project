@@ -48,6 +48,7 @@ function ensureDetectionLoop() {
 async function startTracking() {
   try {
     await loadModels();
+    if (typeof resetDetectionState === 'function') resetDetectionState();
 
     if (!capture) {
       capture = createCapture({
@@ -108,6 +109,7 @@ function stopTracking() {
   }
 
   forceNeutral();
+  if (typeof resetDetectionState === 'function') resetDetectionState();
   document.body.classList.remove('state-joy', 'state-sadness', 'state-anxiety', 'state-disengaged', 'state-emotionless');
   document.body.classList.add('state-neutral');
   const stateLabelEl = document.getElementById('state-label');

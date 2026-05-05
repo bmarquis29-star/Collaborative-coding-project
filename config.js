@@ -27,8 +27,8 @@ const CONFIG = {
 
   // ── Disengaged detection ───────────────────────────────
   disengaged: {
-    gazeOffsetThreshold:  0.04,
-    gazeHysteresis:       0.02,
+    gazeOffsetThreshold:  0.085,
+    gazeHysteresis:       0.05,
     movementThreshold:    4.0,
     movementDecay:        0.85,
     holdFrames:   6,
