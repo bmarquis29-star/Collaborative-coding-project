@@ -13,6 +13,27 @@
 </head>
 <body class="state-neutral">
 
+  <div id="start-overlay" class="active">
+    <div id="start-card">
+      <p class="start-kicker">SENSOR LAYER</p>
+      <h1>Ready to start tracking?</h1>
+      <p>Use your camera to begin emotion tracking. You can pause or stop at any time.</p>
+      <button id="btn-begin-session" class="control-button primary">Start Tracking</button>
+    </div>
+  </div>
+
+  <header id="app-header">
+    <div id="app-title">
+      <p class="title-kicker">LIVE STATE</p>
+      <p class="title-name">Emotion Tracker</p>
+    </div>
+    <div id="tracking-controls">
+      <button id="btn-start-tracking" class="control-button">Start</button>
+      <button id="btn-pause-tracking" class="control-button" disabled>Pause</button>
+      <button id="btn-stop-tracking" class="control-button danger" disabled>Stop</button>
+    </div>
+  </header>
+
   <div id="ui-overlay">
     <div id="state-badge">
       <span id="state-label">NEUTRAL</span>

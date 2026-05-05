@@ -1,8 +1,18 @@
 let capture;
 let detections = [];
 let modelLoaded = false;
+let trackingActive = false;
+let trackingPaused = false;
+let detectionTimer = null;
+
+let startOverlayEl;
+let beginSessionBtn;
+let startBtn;
+let pauseBtn;
+let stopBtn;
 
 async function loadModels() {
+  if (modelLoaded) return;
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
   await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
   await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
@@ -10,30 +20,134 @@ async function loadModels() {
   modelLoaded = true;
 }
 
-function setup() {
-  const cnv = createCanvas(640, 480);
-  cnv.parent(document.getElementById('canvas-container'));
+function setTrackingControls({ canStart, canPause, canStop, pauseText = 'Pause' }) {
+  if (startBtn) startBtn.disabled = !canStart;
+  if (pauseBtn) {
+    pauseBtn.disabled = !canPause;
+    pauseBtn.textContent = pauseText;
+  }
+  if (stopBtn) stopBtn.disabled = !canStop;
+}
 
-  capture = createCapture({
-    video: { width: 640, height: 480, facingMode: 'user' },
-    audio: false
-  });
-  capture.size(640, 480);
-  capture.hide();
+function showStartOverlay(show) {
+  if (!startOverlayEl) return;
+  startOverlayEl.classList.toggle('active', show);
+}
 
-  loadModels();
-
-  // run detection loop separately from p5 draw
-  setInterval(async () => {
-    if (!modelLoaded || !capture.elt) return;
+function ensureDetectionLoop() {
+  if (detectionTimer) return;
+  detectionTimer = setInterval(async () => {
+    if (!trackingActive || trackingPaused || !modelLoaded || !capture?.elt) return;
     const result = await faceapi
       .detectSingleFace(capture.elt, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks();
     detections = result ? [result] : [];
-  }, 100); // detect every 100ms
+  }, 100);
+}
+
+async function startTracking() {
+  try {
+    await loadModels();
+
+    if (!capture) {
+      capture = createCapture({
+        video: { width: 640, height: 480, facingMode: 'user' },
+        audio: false,
+      });
+      capture.size(640, 480);
+      capture.hide();
+    }
+
+    if (capture.elt) {
+      await capture.elt.play().catch(() => {});
+    }
+
+    trackingActive = true;
+    trackingPaused = false;
+    showStartOverlay(false);
+    setTrackingControls({ canStart: false, canPause: true, canStop: true, pauseText: 'Pause' });
+    ensureDetectionLoop();
+    loop();
+  } catch (err) {
+    console.warn('Unable to start tracking:', err);
+    showStartOverlay(true);
+  }
+}
+
+function togglePauseTracking() {
+  if (!trackingActive || !capture?.elt) return;
+  trackingPaused = !trackingPaused;
+
+  if (trackingPaused) {
+    capture.elt.pause();
+    detections = [];
+    setTrackingControls({ canStart: false, canPause: true, canStop: true, pauseText: 'Resume' });
+  } else {
+    capture.elt.play().catch(() => {});
+    setTrackingControls({ canStart: false, canPause: true, canStop: true, pauseText: 'Pause' });
+  }
+}
+
+function stopTracking() {
+  trackingActive = false;
+  trackingPaused = false;
+  detections = [];
+
+  if (detectionTimer) {
+    clearInterval(detectionTimer);
+    detectionTimer = null;
+  }
+
+  if (capture?.elt?.srcObject) {
+    capture.elt.srcObject.getTracks().forEach(track => track.stop());
+  }
+
+  if (capture) {
+    capture.remove();
+    capture = null;
+  }
+
+  forceNeutral();
+  document.body.classList.remove('state-joy', 'state-sadness', 'state-anxiety', 'state-disengaged', 'state-emotionless');
+  document.body.classList.add('state-neutral');
+  const stateLabelEl = document.getElementById('state-label');
+  const stateDescEl = document.getElementById('state-description');
+  if (stateLabelEl) stateLabelEl.textContent = 'NEUTRAL';
+  if (stateDescEl) stateDescEl.textContent = '';
+  showStartOverlay(true);
+  setTrackingControls({ canStart: true, canPause: false, canStop: false });
+}
+
+function setup() {
+  const cnv = createCanvas(640, 480);
+  cnv.parent(document.getElementById('canvas-container'));
+
+  startOverlayEl = document.getElementById('start-overlay');
+  beginSessionBtn = document.getElementById('btn-begin-session');
+  startBtn = document.getElementById('btn-start-tracking');
+  pauseBtn = document.getElementById('btn-pause-tracking');
+  stopBtn = document.getElementById('btn-stop-tracking');
+
+  beginSessionBtn?.addEventListener('click', startTracking);
+  startBtn?.addEventListener('click', startTracking);
+  pauseBtn?.addEventListener('click', togglePauseTracking);
+  stopBtn?.addEventListener('click', stopTracking);
+
+  setTrackingControls({ canStart: true, canPause: false, canStop: false });
+  showStartOverlay(true);
 }
 
 function draw() {
+  if (!trackingActive || !capture) {
+    background(6, 8, 12);
+    fill(120);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    text('click "Start Tracking" to begin', width / 2, height / 2);
+    return;
+  }
+
   // mirrored webcam
   push();
   translate(width, 0);
@@ -44,6 +158,15 @@ function draw() {
   fill(0, 0, 0, 55);
   noStroke();
   rect(0, 0, width, height);
+
+  if (trackingPaused) {
+    fill(190);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(15);
+    text('tracking paused', width / 2, height / 2);
+    return;
+  }
 
   if (!modelLoaded) {
     fill(80);
@@ -97,11 +220,12 @@ function draw() {
 }
 // pause camera when tab is hidden, resume when visible
 document.addEventListener('visibilitychange', () => {
+  if (!capture?.elt || !trackingActive) return;
   if (document.hidden) {
     capture.elt.pause();
     noLoop();
   } else {
-    capture.elt.play();
+    if (!trackingPaused) capture.elt.play().catch(() => {});
     loop();
   }
 });
