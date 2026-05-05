@@ -10,6 +10,8 @@
   --accent-disengaged: #e04a2f;
   --font-mono: 'Space Mono', monospace;
   --font-display: 'DM Serif Display', serif;
+  --app-max-width: 980px;
+  --canvas-radius: 10px;
 }
 
 html, body {
@@ -19,6 +21,11 @@ html, body {
   color: var(--text);
   font-family: var(--font-mono);
   transition: background 1.2s ease;
+}
+
+body {
+  display: grid;
+  place-items: center;
 }
 
 /* ── Atmosphere states ── */
@@ -45,12 +52,21 @@ body.state-disengaged   { animation: none; background: #0e0e0e; }
 
 /* ── Canvas ── */
 #canvas-container {
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
+  padding: 5.5rem 1rem 1.5rem;
   display: flex; align-items: center; justify-content: center;
   z-index: 1;
 }
 #canvas-container canvas {
-  border-radius: 4px;
+  width: min(92vw, var(--app-max-width));
+  height: auto;
+  max-height: calc(100vh - 7rem);
+  aspect-ratio: 4 / 3;
+  border-radius: var(--canvas-radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 8, 10, 0.4);
+  box-shadow: 0 14px 50px rgba(0, 0, 0, 0.35);
   transition: box-shadow 1s ease, filter 1s ease;
 }
 
@@ -82,13 +98,18 @@ body.state-anxiety #canvas-container canvas {
 
 /* ── UI Overlay ── */
 #ui-overlay {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, var(--app-max-width));
+  height: auto;
   pointer-events: none;
   z-index: 10;
   display: flex; flex-direction: column;
   align-items: flex-start;
-  padding: 2rem; gap: 0.75rem;
+  padding: 0;
+  gap: 0.45rem;
 }
 
 #state-badge {
@@ -154,6 +175,8 @@ body.state-anxiety #state-badge::before {
   padding-left: 0.2rem;
   transition: color 0.8s;
   min-height: 1.5rem;
+  max-width: min(56ch, 70vw);
+  text-wrap: balance;
 }
 body.state-joy          #state-description { color: rgba(245,200,66,0.7); }
 body.state-sadness      #state-description { color: rgba(127,162,217,0.75); }
@@ -185,10 +208,11 @@ body.state-disengaged   #state-description { color: rgba(224,74,47,0.6); }
 #disengaged-prompt {
   display: flex; flex-direction: column;
   align-items: center; gap: 1.2rem;
-  padding: 2.5rem 3rem;
+  width: min(92vw, 560px);
+  padding: 2rem 2.2rem;
   background: rgba(10, 6, 6, 0.88);
   border: 1px solid rgba(224,74,47,0.5);
-  border-radius: 4px;
+  border-radius: 10px;
   backdrop-filter: blur(10px);
   animation: promptRise 0.5s ease forwards;
 }
@@ -256,12 +280,16 @@ body.state-joy #joy-canvas { opacity: 1; }
 
 /* ── Debug panel ── */
 #debug-panel {
-  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  position: fixed;
+  right: max(1rem, calc((100vw - min(92vw, var(--app-max-width))) / 2));
+  bottom: 1.25rem;
   z-index: 30;
-  background: rgba(14,14,14,0.85);
-  border: 1px solid #222;
-  border-radius: 2px;
-  padding: 0.75rem 1rem;
+  min-width: 210px;
+  background: rgba(14,14,14,0.78);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  backdrop-filter: blur(7px);
+  padding: 0.75rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.3rem;
 }
 .debug-row {
@@ -269,6 +297,36 @@ body.state-joy #joy-canvas { opacity: 1; }
   font-size: 0.65rem; color: var(--text-dim);
 }
 .debug-key { color: #444; }
+
+@media (max-width: 900px) {
+  #canvas-container {
+    padding: 5.5rem 0.75rem 7.75rem;
+  }
+
+  #canvas-container canvas {
+    width: 96vw;
+    max-height: calc(100vh - 13.25rem);
+  }
+
+  #ui-overlay {
+    top: 0.8rem;
+    width: 96vw;
+  }
+
+  #state-description {
+    font-size: 1rem;
+    max-width: 92vw;
+  }
+
+  #debug-panel {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    bottom: 0.7rem;
+    width: min(96vw, 520px);
+    min-width: 0;
+  }
+}
 body.state-emotionless {
   background: #0e0e0e;
   animation: none;
