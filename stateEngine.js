@@ -40,13 +40,16 @@ function updateState(signals) {
     _noFaceCount = 0; // face is back, reset counter
   }
 
-  const calmFace = signals.mouthOpenness < CONFIG.joy.mouthCloseHysteresis
+  const neutralMouthBand = signals.mouthOpenness >= CONFIG.sadness.mouthCloseThreshold
+                       && signals.mouthOpenness < CONFIG.joy.mouthCloseHysteresis;
+  const calmFace = neutralMouthBand
                 && signals.gazeXOffset < CONFIG.disengaged.gazeHysteresis
                 && signals.headMovement < CONFIG.sadness.movementLimit;
-  const sadnessCandidate = signals.mouthOpenness < CONFIG.sadness.mouthCloseThreshold;
 
-  if (calmFace && !sadnessCandidate) {
+  if (calmFace) {
     _joyHold = 0;
+    _sadnessHold = 0;
+    _sadnessRelease = 0;
     _anxietyHold = 0;
     _anxietyRelease = 0;
     _disengHold = 0;
@@ -120,6 +123,8 @@ function updateState(signals) {
   } else if (_currentState === STATES.DISENGAGED && disengGone) {
     _disengDuration = 0;
     _currentState   = STATES.EMOTIONLESS;
+  } else if (joyReady) {
+    _currentState = STATES.JOY;
   } else if (anxietyReady) {
     _currentState = STATES.ANXIETY;
   } else if (_currentState === STATES.ANXIETY && anxietyGone) {
@@ -129,7 +134,7 @@ function updateState(signals) {
   } else if (_currentState === STATES.SADNESS && sadnessGone) {
     _currentState = STATES.EMOTIONLESS;
   } else if (_currentState !== STATES.DISENGAGED) {
-    _currentState = joyReady ? STATES.JOY : STATES.EMOTIONLESS;
+    _currentState = STATES.EMOTIONLESS;
   }
 
   return {

@@ -10,18 +10,18 @@ const CONFIG = {
 
   // ── Sadness detection ─────────────────────────────────
   sadness: {
-    mouthCloseThreshold:  0.04,
+    mouthCloseThreshold:  0.036,
     gazeLimit:            0.03,
     movementLimit:        1.6,
-    holdFrames:   6,
+    holdFrames:   8,
     releaseFrames: 14,
   },
 
   // ── Anxiety detection ──────────────────────────────────
   anxiety: {
-    gazeOffsetThreshold:  0.04,
-    movementThreshold:    1.5,
-    holdFrames:   3,
+    gazeOffsetThreshold:  0.05,
+    movementThreshold:    1.9,
+    holdFrames:   4,
     releaseFrames: 12,
   },
 
