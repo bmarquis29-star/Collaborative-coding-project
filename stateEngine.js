@@ -43,11 +43,10 @@ function updateState(signals) {
   const calmFace = signals.mouthOpenness < CONFIG.joy.mouthCloseHysteresis
                 && signals.gazeXOffset < CONFIG.disengaged.gazeHysteresis
                 && signals.headMovement < CONFIG.sadness.movementLimit;
+  const sadnessCandidate = signals.mouthOpenness < CONFIG.sadness.mouthCloseThreshold;
 
-  if (calmFace) {
+  if (calmFace && !sadnessCandidate) {
     _joyHold = 0;
-    _sadnessHold = 0;
-    _sadnessRelease = 0;
     _anxietyHold = 0;
     _anxietyRelease = 0;
     _disengHold = 0;
