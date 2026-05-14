@@ -2,5 +2,5 @@
 Team:
   Drew: state engine lead, dreddy27
   Brennan: response lead, bmarquis29-star
-  Christian Cebreros: integration lead, ccebreros27-svg
+  Christian Cebreros: integration lead, ccebreros27
   Blake: detection lead, bhanss29-ops
